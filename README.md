@@ -29,24 +29,32 @@ Unlike linear weights in traditional AI, NGS uses Projected Topology. Logic is d
 📂 Project Structure
 ```
 /
-├── .github/              # CI/CD pipelines for physics-unit testing
-├── docs/                 # Formalized papers and SHD-CCP specifications
-├── core/                 # The Substrate Engine
-│   ├── physics/          # Zero-Point projection and Toroidal flux solvers
-│   ├── geometry/         # Nested dimension mapping and Planck-scale grids
-│   └── synchronization/  # The Universal Synchronization Field (Metronome)
-├── hardware/             # Specifications for Bifilar Coil interfaces
-├── lib/
-│   ├── shd_ccp/          # Packet construction and compression logic
-│   └── topology/         # Symbolic reasoning and geometric logic kernels
-├── models/
-│   ├── emergent/         # ENN (Emergent Neuron Networks) implementations
-│   └── linear/           # Traditional Modular AI systems (for benchmarking)
-├── simulation/           # The parallel environment runtime
-│   ├── environments/     # Substrate configurations
-│   └── benchmarks/       # Comparison logic between ENN and Linear systems
-├── scripts/              # Data visualization for toroidal field collapse
-└── tests/                # Validation for SHD-CCP packet integrity
+├── 01_Protocol/              # The Laws of Physics (The SHD-CCP Standard)
+│   ├── 01_Env_Atomic_Scope   # Inner Kernel definitions
+│   ├── 02_Env_Local_Manifold # Cluster-level physics
+│   └── 05_Physics_of_Info    # Zero-Point Data Mass & Zeta Energy Potential
+├── 03_Data_Structures/       # The Containers (Mirrored to Environments)
+│   ├── 01_Atomic_Containers  # Single 2D/3D objects
+│   ├── 02_Cluster_Grids      # 3D/4D neighborhoods
+│   ├── 03_Shard_Volumes      # Hyperbolic Regions
+│   └── 04_Universal_Manifolds # The "All"
+├── 04_Algorithms/            # The Mechanics (Segmented by Topology)
+│   ├── 01_Linear_Euclidean   # 2D flat interfaces
+│   ├── 02_Spherical_Quat     # 3D Cluster rotation & triangulation
+│   ├── 03_Hyperbolic_Poincare # Nested/Curved routing (Lorentz Trans)
+│   └── 04_Zeta_Energy_Dyn    # Data Mass & Geometric Hash Key Generation
+├── 09_Neural_Networks/       # The Brains (Dimensional Capability)
+│   ├── 01_2D_Planar_Nets     # Standard CNN pattern matching
+│   ├── 02_3D_Volumetric_Nets # 3D ResNets for object/cluster shape
+│   ├── 03_4D_Temporal_Nets   # LSTM/Hyperbolic time prediction
+│   └── 04_Nested_Hyper_Nets  # Recursive HNN & Hybrid Ensemble Routers
+├── 10_Simulations/           # The Proving Ground
+│   ├── 01_2D_Flat_Sim        # Baseline testing
+│   ├── 02_Tensor_Engine      # 2D-3D transition testing
+│   ├── 03_NGS_Full_Sim       # Full SHD-CCP Nested Simulation
+│   └── 04_Zeta_Wind_Tunnel   # Stress testing & Forward Simulation Proving
+└── scripts/                  # Data visualization for toroidal field collapse
+
 ```
 
 🚀 Getting Started
