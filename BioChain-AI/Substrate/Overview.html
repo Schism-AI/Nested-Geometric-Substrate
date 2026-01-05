@@ -1,0 +1,1175 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BioChain AI: Bio-Chain & Substrate Architect</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/mathjs/11.8.0/math.js"></script>
+    <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
+    <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;700&family=Inter:wght@300;400;600;800&display=swap');
+
+        :root {
+            --neon-blue: #00f3ff;
+            --neon-purple: #bc13fe;
+            --neon-green: #0aff0a;
+            --neon-amber: #ffaa00;
+            --neon-red: #ff3333;
+            --dark-bg: #050505;
+            --panel-bg: #0a0a0f;
+            --text-main: #e0e0e0;
+        }
+
+        body {
+            background-color: var(--dark-bg);
+            color: var(--text-main);
+            font-family: 'Inter', sans-serif;
+            overflow-x: hidden;
+        }
+
+        .mono { font-family: 'JetBrains Mono', monospace; }
+
+        .glass-panel {
+            background: rgba(10, 10, 15, 0.85);
+            backdrop-filter: blur(16px);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            box-shadow: 0 4px 30px rgba(0, 0, 0, 0.6);
+        }
+
+        .gradient-text {
+            background: linear-gradient(135deg, var(--neon-blue), var(--neon-purple));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        /* Bit Grid Styling */
+        .einstein-grid {
+            display: grid;
+            grid-template-columns: repeat(8, 1fr);
+            gap: 2px;
+        }
+        .bit-cell {
+            aspect-ratio: 1;
+            border-radius: 2px;
+            transition: all 0.3s ease;
+            position: relative;
+        }
+        .bit-cell:hover { transform: scale(1.2); z-index: 10; border: 1px solid white; }
+        
+        .row-halo-n { background-color: rgba(188, 19, 254, 0.15); border: 1px solid rgba(188, 19, 254, 0.3); } 
+        .row-core { background-color: rgba(0, 243, 255, 0.15); border: 1px solid rgba(0, 243, 255, 0.3); }
+        .row-halo-s { background-color: rgba(10, 255, 10, 0.15); border: 1px solid rgba(10, 255, 10, 0.3); }
+        
+        /* Custom Range Slider */
+        input[type=range] {
+            -webkit-appearance: none;
+            width: 100%;
+            background: transparent;
+        }
+        input[type=range]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            height: 14px;
+            width: 14px;
+            border-radius: 50%;
+            background: var(--neon-blue);
+            cursor: pointer;
+            margin-top: -5px;
+            box-shadow: 0 0 10px var(--neon-blue); 
+            border: 2px solid #000;
+        }
+        input[type=range]::-webkit-slider-runnable-track {
+            width: 100%;
+            height: 4px;
+            background: #222;
+            border-radius: 2px;
+        }
+
+        /* Scanline Animation */
+        .scanline {
+            position: absolute;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: linear-gradient(to bottom, transparent 50%, rgba(0, 243, 255, 0.02) 51%, transparent 52%);
+            background-size: 100% 4px;
+            pointer-events: none;
+            z-index: 20;
+        }
+
+        /* Tab Transitions */
+        .tab-content { display: none; animation: fadeEffect 0.5s; }
+        .tab-content.active { display: block; }
+        @keyframes fadeEffect { from {opacity: 0;} to {opacity: 1;} }
+        
+        .nav-btn {
+            border-bottom: 2px solid transparent;
+            transition: all 0.3s;
+        }
+        .nav-btn.active {
+            border-bottom: 2px solid var(--neon-blue);
+            color: var(--neon-blue);
+        }
+        
+        /* Table Styles */
+        .data-table th { text-align: left; padding: 4px; color: var(--neon-blue); font-size: 10px; border-bottom: 1px solid #333; }
+        .data-table td { padding: 4px; font-size: 10px; border-bottom: 1px solid #222; }
+        .data-table tr:hover { background: rgba(255,255,255,0.05); }
+    </style>
+</head>
+<body class="antialiased selection:bg-cyan-500 selection:text-black">
+
+    <!-- Navigation -->
+    <nav class="fixed top-0 w-full z-50 glass-panel border-b border-gray-800">
+        <div class="max-w-7xl mx-auto px-4 py-3 flex justify-between items-center">
+            <div class="flex items-center space-x-3">
+                <div class="w-3 h-3 bg-cyan-400 rounded-sm animate-pulse shadow-[0_0_10px_#00f3ff]"></div>
+                <h1 class="text-xl font-bold tracking-tighter text-white">BIOCHAIN <span class="font-light text-cyan-400">ARCHITECT</span></h1>
+            </div>
+            
+            <!-- Tab Buttons -->
+            <div class="flex space-x-8 text-sm font-mono cursor-pointer">
+                <button onclick="switchTab('tab1')" id="btn-tab1" class="nav-btn active px-2 py-1">BIO-CHAIN</button>
+                <button onclick="switchTab('tab2')" id="btn-tab2" class="nav-btn px-2 py-1">SUBSTRATE FORGE</button>
+            </div>
+
+            <div class="hidden md:flex space-x-6 text-xs font-mono text-gray-500">
+                <span class="text-cyan-400">SYSTEM: ACTIVE</span>
+            </div>
+        </div>
+    </nav>
+
+    <main class="pt-24 pb-20 max-w-7xl mx-auto px-4 sm:px-6">
+
+        <!-- TAB 1: BIO-CHAIN ARCHITECT -->
+        <div id="tab1" class="tab-content active">
+            <!-- Header -->
+            <section class="mb-8 text-center relative">
+                <div class="absolute top-0 left-1/2 -translate-x-1/2 w-3/4 h-64 bg-cyan-900/10 blur-[120px] -z-10 rounded-full"></div>
+                <h2 class="text-4xl md:text-5xl font-bold mb-2 tracking-tight text-white">
+                    Bio-Chain <span class="gradient-text">Isomorphism</span>
+                </h2>
+                <p class="text-sm text-gray-400 max-w-2xl mx-auto font-light">
+                    Unifying the <strong>64-Bit Einstein Tile</strong> with the <strong>64-Codon Genetic Code</strong> via Holographic Inversion.
+                </p>
+            </section>
+
+            <div class="grid grid-cols-1 lg:grid-cols-12 gap-8">
+                <!-- Theoretical Framework & Data Tables -->
+                <div class="lg:col-span-5 space-y-4 text-gray-300 h-[750px] overflow-y-auto pr-2 custom-scrollbar">
+                    
+                    <!-- Core Specs -->
+                    <article class="glass-panel p-5 rounded-xl border-l-4 border-cyan-500">
+                        <div class="flex items-center space-x-3 mb-2">
+                            <span class="text-cyan-400 font-mono text-[10px] font-bold px-2 py-1 bg-cyan-900/30 rounded">01. THE SHD-CCP ARCHITECTURE</span>
+                        </div>
+                        <h3 class="text-lg font-bold text-white mb-2">Why 64 Bits?</h3>
+                        <p class="text-xs leading-relaxed text-gray-400 mb-3">
+                            The <strong>SHD-CCP (Symbolic High-Dimensional Context-Compression Packet)</strong> maps the 64 codons of biology to the 64-bit registers of modern tensor computing. This creates a "Bio-Digital Isomorphism" where bitwise operations emulate molecular physics.
+                        </p>
+                        <p class="text-xs leading-relaxed text-gray-400 mb-3">
+                            <strong>The Sandwich Protocol:</strong> Just as DNA has regulatory regions (Promoters) and coding regions (Exons), the packet segregates data into "Hot" control lanes (Halo) and "Cold" payloads (Core).
+                        </p>
+                        
+                        <div class="space-y-3">
+                            <div class="bg-gray-900/50 p-2 rounded border border-gray-800">
+                                <div class="text-[10px] text-purple-400 font-bold mb-1">ROW 0: NORTH HALO (The Regulatory Promoter)</div>
+                                <p class="text-[9px] text-gray-500 mb-1">Optimized for H100 DSMEM (Distributed Shared Memory).</p>
+                                <ul class="text-[10px] text-gray-400 space-y-1 ml-2">
+                                    <li>• <strong>Bits 0-3 (SF): Structural Form ID.</strong> Maps to 16 Dinucleotides (e.g., CpG islands). Controls "Steric Hindrance"—if forms don't match, the packet is rejected before processing.</li>
+                                    <li>• <strong>Bit 4 (P): Parity.</strong> Enforces Purine/Pyrimidine exclusion logic. Acts as a CRC check for biological viability.</li>
+                                    <li>• <strong>Bits 5-7 (SP): Spin Class.</strong> Maps to 8 Amino Acid Groups. Defines the folding vector (Hydrophobic vs Hydrophilic).</li>
+                                </ul>
+                            </div>
+                            <div class="bg-gray-900/50 p-2 rounded border border-gray-800">
+                                <div class="text-[10px] text-cyan-400 font-bold mb-1">ROWS 2-5: QUATERNION CORE (The Coding Sequence)</div>
+                                <p class="text-[9px] text-gray-500 mb-1">Optimized for H100 TMA (Tensor Memory Accelerator).</p>
+                                <ul class="text-[10px] text-gray-400 space-y-1 ml-2">
+                                    <li>• <strong>32 Bits Contiguous.</strong> Stores the 4D Rotation State ($q = w + xi + yj + zk$).</li>
+                                    <li>• <strong>Context Teleportation.</strong> Allows transferring the "Folding State" of a protein without re-computing the history.</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </article>
+
+                    <!-- Dinucleotide Table -->
+                    <article class="glass-panel p-5 rounded-xl border-l-4 border-purple-500">
+                        <div class="flex items-center space-x-3 mb-2">
+                            <span class="text-purple-400 font-mono text-[10px] font-bold px-2 py-1 bg-purple-900/30 rounded">02. STRUCTURAL FORM ID (DINUCLEOTIDES)</span>
+                        </div>
+                        <p class="text-[10px] text-gray-400 mb-2">
+                            Dinucleotides determine the thermodynamic "stiffness" of the DNA/RNA strand. We map these to 4-bit IDs.
+                        </p>
+                        <table class="w-full data-table font-mono">
+                            <thead>
+                                <tr><th>ID (Bin)</th><th>Motif</th><th>Physical Property</th><th>Simulation Effect</th></tr>
+                            </thead>
+                            <tbody>
+                                <tr><td>0000</td><td>TA</td><td>High Flexibility</td><td>Hinge / Kink (Bendable)</td></tr>
+                                <tr><td>0001</td><td>AT</td><td>Flexible</td><td>Moderate Curve</td></tr>
+                                <tr><td>0101</td><td>AC</td><td>Amino/Weak</td><td>Transient Bond (Unstable)</td></tr>
+                                <tr><td>1000</td><td>CG</td><td>High Stability</td><td>Anchor (CpG Island)</td></tr>
+                                <tr><td>1010</td><td>GT</td><td>Keto/Weak</td><td>Wobble Pair (Mutagenic)</td></tr>
+                                <tr><td>1111</td><td>GG</td><td>Max Stacking</td><td>Geometric Lock (Rigid)</td></tr>
+                            </tbody>
+                        </table>
+                    </article>
+
+                    <!-- Spin Class Table -->
+                    <article class="glass-panel p-5 rounded-xl border-l-4 border-green-500">
+                        <div class="flex items-center space-x-3 mb-2">
+                            <span class="text-green-400 font-mono text-[10px] font-bold px-2 py-1 bg-green-900/30 rounded">03. SPIN CLASS ID (AMINO GROUPS)</span>
+                        </div>
+                        <p class="text-[10px] text-gray-400 mb-2">
+                            The 3-bit Spin Class dictates the folding trajectory in the manifold based on chemical properties.
+                        </p>
+                        <table class="w-full data-table font-mono">
+                            <thead>
+                                <tr><th>ID</th><th>Group</th><th>Residues</th><th>Simulation Rule</th></tr>
+                            </thead>
+                            <tbody>
+                                <tr><td>000</td><td>Aliphatic</td><td>Gly, Ala, Val</td><td>Hydrophobic Collapse (Inward)</td></tr>
+                                <tr><td>001</td><td>Aromatic</td><td>Phe, Tyr, Trp</td><td>Pi-Stacking (Parallel Align)</td></tr>
+                                <tr><td>010</td><td>Sulfur</td><td>Cys, Met</td><td>Disulfide Bridge (Covalent Link)</td></tr>
+                                <tr><td>011</td><td>Alcoholic</td><td>Ser, Thr</td><td>Polar Bond (Water Seek)</td></tr>
+                                <tr><td>100</td><td>Acidic</td><td>Asp, Glu</td><td>Repels Acidic / Attracts Basic</td></tr>
+                                <tr><td>101</td><td>Basic</td><td>Lys, Arg, His</td><td>Repels Basic / Attracts Acidic</td></tr>
+                                <tr><td>110</td><td>Amide</td><td>Asn, Gln</td><td>H-Bond Network (Mesh)</td></tr>
+                                <tr><td>111</td><td>Cyclic</td><td>Pro</td><td>Fixed Turn (Kink/Break)</td></tr>
+                            </tbody>
+                        </table>
+                    </article>
+                </div>
+
+                <!-- Simulation & Interaction -->
+                <div class="lg:col-span-7 space-y-4">
+                    <div class="glass-panel rounded-xl p-1 overflow-hidden relative h-80 cursor-move" id="manifoldContainer">
+                        <div class="scanline"></div>
+                        <div class="absolute top-3 left-3 z-10 text-[10px] text-cyan-400 font-mono pointer-events-none">
+                            TOPOLOGY: T(4,9) // MANUAL NAV: DRAG/WHEEL
+                        </div>
+                        
+                        <!-- Play/Pause for Bio-Chain -->
+                        <div class="absolute top-3 right-3 z-20">
+                            <button onclick="toggleBioPlay()" id="btnBioPlay" class="bg-gray-800/80 hover:bg-gray-700 text-neon-blue font-bold p-2 rounded-full border border-neon-blue/30 transition-all shadow-[0_0_10px_rgba(0,243,255,0.2)]">
+                                <i class="fas fa-play text-xs"></i>
+                            </button>
+                        </div>
+
+                        <!-- Substrate Toggle -->
+                        <div class="absolute bottom-10 left-3 z-20 flex items-center space-x-2 bg-black/50 p-1 rounded border border-gray-700">
+                            <input type="checkbox" id="substrateToggle" class="form-checkbox h-3 w-3 text-neon-blue bg-gray-900 border-gray-600 rounded focus:ring-0">
+                            <label for="substrateToggle" class="text-[9px] text-gray-300 font-mono select-none">SHOW SUBSTRATE LATTICE (5%)</label>
+                        </div>
+
+                        <canvas id="manifoldCanvas" class="w-full h-full bg-black rounded-lg"></canvas>
+                        <div class="absolute bottom-3 left-3 w-32 h-1 bg-gray-800 rounded overflow-hidden z-10 pointer-events-none">
+                            <div id="compressionBar" class="h-full bg-gradient-to-r from-purple-500 to-cyan-500 w-0"></div>
+                        </div>
+                    </div>
+
+                    <!-- Enhanced Configurator -->
+                    <div class="glass-panel p-5 rounded-xl">
+                        <div class="grid grid-cols-2 gap-6">
+                            <div class="space-y-4">
+                                <!-- North Halo Config -->
+                                <div>
+                                    <div class="flex items-center justify-between mb-1">
+                                        <label class="text-[10px] text-purple-400 font-bold uppercase">North Halo (Control)</label>
+                                        <span class="text-[9px] text-gray-600 font-mono">ROW 0</span>
+                                    </div>
+                                    <div class="space-y-2">
+                                        <select id="formSelect" class="w-full bg-black/50 border border-gray-700 text-xs text-white rounded p-2 font-mono hover:border-purple-500 transition-colors">
+                                            <option value="0">0000: TA (Hinge - Flexible)</option>
+                                            <option value="1">0001: AT (Curve - Moderate)</option>
+                                            <option value="5">0101: AC (Amino - Weak)</option>
+                                            <option value="8">1000: CG (Anchor - Rigid)</option>
+                                            <option value="10">1010: GT (Wobble - Mutagenic)</option>
+                                            <option value="15">1111: GG (Lock - Max Stack)</option>
+                                        </select>
+                                        <select id="spinSelect" class="w-full bg-black/50 border border-gray-700 text-xs text-white rounded p-2 font-mono hover:border-green-500 transition-colors">
+                                            <option value="0">000: Aliphatic (Collapse)</option>
+                                            <option value="1">001: Aromatic (Pi-Stack)</option>
+                                            <option value="2">010: Sulfur (Bridge)</option>
+                                            <option value="3">011: Alcoholic (Polar)</option>
+                                            <option value="4">100: Acidic (Repels -)</option>
+                                            <option value="5">101: Basic (Attracts +)</option>
+                                            <option value="6">110: Amide (Network)</option>
+                                            <option value="7">111: Cyclic (Kink)</option>
+                                        </select>
+                                    </div>
+                                </div>
+
+                                <!-- South Halo Config -->
+                                <div>
+                                    <div class="flex items-center justify-between mb-1">
+                                        <label class="text-[10px] text-green-400 font-bold uppercase">South Halo (Oscillation)</label>
+                                        <span class="text-[9px] text-gray-600 font-mono">ROW 7</span>
+                                    </div>
+                                    <div class="flex space-x-2">
+                                        <div class="w-1/2">
+                                            <label class="text-[9px] text-gray-500">Freq ID</label>
+                                            <input type="number" id="freqInput" min="0" max="31" value="5" class="w-full bg-black/50 border border-gray-700 text-xs text-white rounded p-1">
+                                        </div>
+                                        <div class="w-1/2">
+                                            <label class="text-[9px] text-gray-500">Amp ID</label>
+                                            <input type="number" id="ampInput" min="0" max="7" value="3" class="w-full bg-black/50 border border-gray-700 text-xs text-white rounded p-1">
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="space-y-4">
+                                <!-- Quaternion Core -->
+                                <div>
+                                    <div class="flex items-center justify-between mb-1">
+                                        <label class="text-[10px] text-cyan-400 font-bold uppercase">Quaternion Payload</label>
+                                        <span class="text-[9px] text-gray-600 font-mono">ROWS 2-5</span>
+                                    </div>
+                                    <div class="grid grid-cols-2 gap-2">
+                                        <div><label class="text-[9px] text-gray-500">W (Time)</label><input type="range" id="sliderW" min="-1" max="1" step="0.01" value="0.7"></div>
+                                        <div><label class="text-[9px] text-gray-500">X (Chord)</label><input type="range" id="sliderX" min="-1" max="1" step="0.01" value="0.1"></div>
+                                        <div><label class="text-[9px] text-gray-500">Y (Nest)</label><input type="range" id="sliderY" min="-1" max="1" step="0.01" value="0.5"></div>
+                                        <div><label class="text-[9px] text-gray-500">Z (Shave)</label><input type="range" id="sliderZ" min="-1" max="1" step="0.01" value="-0.2"></div>
+                                    </div>
+                                </div>
+
+                                <!-- Scaling & Sync -->
+                                <div>
+                                    <div class="flex items-center justify-between mb-1">
+                                        <label class="text-[10px] text-orange-400 font-bold uppercase">Buffer / Sync</label>
+                                        <span class="text-[9px] text-gray-600 font-mono">ROW 1,6 / EXT</span>
+                                    </div>
+                                    <div class="space-y-2">
+                                        <div>
+                                            <label class="text-[9px] text-gray-500">Payload Scale (16-bit)</label>
+                                            <input type="range" id="scaleSlider" min="0" max="65535" step="1" value="32768" class="w-full">
+                                        </div>
+                                        <div class="flex space-x-2">
+                                            <input type="text" placeholder="Resonance Key" class="w-2/3 bg-black/50 border border-gray-700 text-[10px] text-white rounded p-1">
+                                            <button onclick="triggerSync()" class="w-1/3 bg-gray-800 hover:bg-gray-700 text-white text-[9px] font-bold rounded border border-gray-600 transition-colors">
+                                                SYNC
+                                            </button>
+                                        </div>
+                                        <div id="syncStatus" class="text-[9px] text-gray-500 text-right h-3"></div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- GENE OUTPUT -->
+                    <div class="glass-panel p-6 rounded-xl border-t-2 border-neon-blue">
+                        <div class="flex justify-between items-end mb-4">
+                            <div>
+                                <h3 class="text-lg font-bold text-white">GENERATED 64-BIT SHD-CCP</h3>
+                                <p class="text-[10px] text-gray-500 font-mono">FORMAT: EINSTEIN TILE (H100 NATIVE)</p>
+                            </div>
+                            <button onclick="generatePacket()" class="bg-cyan-600 hover:bg-cyan-500 text-white font-bold py-2 px-4 rounded text-[10px] tracking-widest transition-colors shadow-[0_0_15px_rgba(0,243,255,0.3)]">
+                                COLLAPSE WAVEFUNCTION
+                            </button>
+                        </div>
+
+                        <div class="flex flex-col md:flex-row gap-6">
+                            <!-- Visual Grid -->
+                            <div class="w-32 h-32 flex-shrink-0">
+                                <div id="bitGrid" class="einstein-grid w-full h-full border border-gray-700 bg-black p-1">
+                                    <!-- Grid generated by JS -->
+                                </div>
+                            </div>
+
+                            <!-- Hex & Decoded Info -->
+                            <div class="flex-grow space-y-3">
+                                <div class="bg-black/60 border border-gray-700 p-3 rounded font-mono text-center">
+                                    <div class="text-[10px] text-gray-600 mb-1 uppercase">Hexadecimal Gene Sequence</div>
+                                    <div id="hexOutput" class="text-xl md:text-2xl text-cyan-400 tracking-widest break-all glow-text">00 00 00 00 00 00 00 00</div>
+                                </div>
+                                
+                                <div class="bg-gray-900/50 p-3 rounded border border-gray-800 text-xs">
+                                    <div class="flex justify-between border-b border-gray-700 pb-2 mb-2">
+                                        <span class="text-gray-500">BIO-ISOMORPHISM DECODER</span>
+                                        <span class="text-purple-400 font-mono" id="decoderCode">--</span>
+                                    </div>
+                                    <div class="grid grid-cols-2 gap-2 text-[11px]">
+                                        <div>
+                                            <span class="text-gray-500 block">DNA Motif</span>
+                                            <span id="decodeDNA" class="text-white font-bold">--</span>
+                                        </div>
+                                        <div>
+                                            <span class="text-gray-500 block">Protein Action</span>
+                                            <span id="decodeProtein" class="text-white font-bold">--</span>
+                                        </div>
+                                        <div>
+                                            <span class="text-gray-500 block">Payload Scale</span>
+                                            <span id="decodeScale" class="text-orange-400 font-mono">--</span>
+                                        </div>
+                                        <div>
+                                            <span class="text-gray-500 block">Oscillation</span>
+                                            <span id="decodeOsc" class="text-green-400 font-mono">--</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- TAB 2: SUBSTRATE FORGE -->
+        <div id="tab2" class="tab-content">
+            <!-- Header -->
+            <section class="mb-10 text-center relative">
+                <div class="absolute top-0 left-1/2 -translate-x-1/2 w-3/4 h-64 bg-red-900/10 blur-[120px] -z-10 rounded-full"></div>
+                <h2 class="text-4xl md:text-5xl font-bold mb-2 tracking-tight text-white">
+                    Geometric <span class="text-neon-amber">Substrate</span>
+                </h2>
+                <p class="text-sm text-gray-400 max-w-2xl mx-auto font-light">
+                    Inter-Lattice Tension Sensors via <strong>Magneto-Plasmonic Photonic Crystals (MPPC)</strong> and Cubic Compression.
+                </p>
+            </section>
+
+            <div class="grid grid-cols-1 lg:grid-cols-12 gap-8">
+                
+                <!-- LEFT: Visualization Engine -->
+                <div class="lg:col-span-8 space-y-4">
+                    
+                    <!-- Main Canvas -->
+                    <div class="glass-panel rounded-xl p-1 overflow-hidden relative h-[500px] border border-gray-800">
+                        <div class="scanline"></div>
+                        
+                        <!-- HUD Elements -->
+                        <div class="absolute top-4 left-4 z-10 pointer-events-none">
+                            <div class="flex items-center space-x-2">
+                                <span class="w-2 h-2 bg-neon-amber rounded-full animate-pulse"></span>
+                                <span class="text-xs font-bold text-white tracking-widest">MPPC STRAIN GAUGE</span>
+                            </div>
+                            <div class="text-[10px] text-gray-400 font-mono mt-1 space-y-1">
+                                <div>LAYER 1: KAGOME (STATIC)</div>
+                                <div>LAYER 2: BIG FILM (MAGNETO-OPTIC)</div>
+                                <div>LAYER 3: TODA (SOLITONIC)</div>
+                            </div>
+                        </div>
+
+                        <!-- Faraday Rotation Readout -->
+                        <div class="absolute top-4 right-4 z-10 text-right font-mono text-xs pointer-events-none">
+                            <div class="text-neon-red font-bold">FARADAY ROTATION (Φ)</div>
+                            <div id="phiValue" class="text-2xl text-white">0.00°</div>
+                            <div class="text-gray-500 text-[10px] mt-1">PROBE BEAM POLARIZATION</div>
+                        </div>
+
+                        <!-- Compression State HUD -->
+                        <div class="absolute bottom-4 left-4 z-10 pointer-events-none">
+                            <div class="text-[10px] text-gray-500 font-mono mb-1">CUBIC COMPRESSION PHASE</div>
+                            <div id="cycleState" class="text-xl font-bold text-neon-blue tracking-widest">STATE: 12 EDGES</div>
+                            <div class="flex space-x-1 mt-2">
+                                <div class="w-8 h-1 bg-gray-700 cycle-dot" id="dot-12"></div>
+                                <div class="w-8 h-1 bg-gray-700 cycle-dot" id="dot-6"></div>
+                                <div class="w-8 h-1 bg-gray-700 cycle-dot" id="dot-7"></div>
+                                <div class="w-8 h-1 bg-gray-700 cycle-dot" id="dot-3"></div>
+                                <div class="w-8 h-1 bg-gray-700 cycle-dot" id="dot-1"></div>
+                            </div>
+                        </div>
+
+                        <canvas id="substrateCanvas" class="w-full h-full bg-black rounded-lg"></canvas>
+                    </div>
+                </div>
+
+                <!-- RIGHT: Controls & Telemetry -->
+                <div class="lg:col-span-4 space-y-6">
+                    
+                    <!-- Cycle Timing Controls -->
+                    <div class="glass-panel p-6 rounded-xl border-l-2 border-neon-blue">
+                        <h3 class="text-sm font-bold text-white mb-4 flex items-center justify-between">
+                            <div class="flex items-center">
+                                <svg class="w-4 h-4 mr-2 text-neon-blue" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                                CYCLE TIMING
+                            </div>
+                            <div id="cycleStatus" class="text-[10px] text-neon-green">PAUSED</div>
+                        </h3>
+                        
+                        <!-- Playback Buttons -->
+                        <div class="flex space-x-2 mb-4">
+                            <button onclick="toggleCycle()" id="btnPlayPause" class="flex-1 bg-gray-800 hover:bg-gray-700 text-white font-bold py-2 px-4 rounded text-xs transition-colors border border-gray-600">
+                                <i class="fas fa-play mr-2"></i> PLAY
+                            </button>
+                            <button onclick="resetCycle()" class="flex-1 bg-gray-800 hover:bg-gray-700 text-white font-bold py-2 px-4 rounded text-xs transition-colors border border-gray-600">
+                                <i class="fas fa-redo mr-2"></i> RESET
+                            </button>
+                        </div>
+
+                        <div class="space-y-2">
+                            <div class="flex justify-between text-[10px] font-mono mb-1">
+                                <span class="text-gray-400">Pulse Scrub (0-720)</span>
+                                <span id="valRatio" class="text-neon-blue">0</span>
+                            </div>
+                            <!-- Pulse Slider scrub -->
+                            <input type="range" id="sliderPulse" min="0" max="720" step="1" value="0" class="w-full">
+                            <p class="text-[9px] text-gray-500 mt-1">
+                                Manual scrub through one full 720-degree topological cycle (12-6-7-3-1).
+                            </p>
+                        </div>
+                    </div>
+
+                    <!-- Sensor Physics Controls -->
+                    <div class="glass-panel p-6 rounded-xl border-l-2 border-neon-amber">
+                        <h3 class="text-sm font-bold text-white mb-4 flex items-center">
+                            <svg class="w-4 h-4 mr-2 text-neon-amber" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path></svg>
+                            SENSOR CALIBRATION
+                        </h3>
+                        
+                        <div class="space-y-4">
+                            <div>
+                                <div class="flex justify-between text-[10px] font-mono mb-1">
+                                    <span class="text-gray-400">Verdet Constant (V)</span>
+                                    <span id="valV" class="text-neon-amber">2.5</span>
+                                </div>
+                                <input type="range" id="sliderV" min="0.1" max="5.0" step="0.1" value="2.5">
+                            </div>
+                            
+                            <div>
+                                <div class="flex justify-between text-[10px] font-mono mb-1">
+                                    <span class="text-gray-400">Layer Thickness (L)</span>
+                                    <span id="valL" class="text-neon-amber">1.0</span>
+                                </div>
+                                <input type="range" id="sliderL" min="0.1" max="3.0" step="0.1" value="1.0">
+                            </div>
+
+                            <div>
+                                <div class="flex justify-between text-[10px] font-mono mb-1">
+                                    <span class="text-gray-400">Lattice Tension (Stress)</span>
+                                    <span id="valStress" class="text-neon-red">0.0</span>
+                                </div>
+                                <input type="range" id="sliderStress" min="-10" max="10" step="0.1" value="0">
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Telemetry Output -->
+                    <div class="glass-panel p-6 rounded-xl border-t-2 border-neon-blue">
+                        <h3 class="text-sm font-bold text-white mb-4">TENSION QUATERNION</h3>
+                        
+                        <div class="bg-black/60 p-4 rounded font-mono text-center mb-4 border border-gray-800">
+                            <div class="text-[10px] text-gray-500 mb-1">GEOMETRIC TENSION FIELD</div>
+                            <div id="tensionOutput" class="text-2xl text-white font-bold tracking-widest">0.00 T</div>
+                            <div class="text-[10px] text-gray-600 mt-1">$$ B_{geom} = \frac{\phi}{\mathcal{V} \cdot L} $$</div>
+                        </div>
+
+                        <div class="space-y-2 text-xs font-mono">
+                            <div class="flex justify-between border-b border-gray-800 pb-1">
+                                <span class="text-gray-500">W (Scalar)</span>
+                                <span id="qW" class="text-white">0.00</span>
+                            </div>
+                            <div class="flex justify-between border-b border-gray-800 pb-1">
+                                <span class="text-gray-500">X (Tension i)</span>
+                                <span id="qX" class="text-neon-red">0.00</span>
+                            </div>
+                            <div class="flex justify-between border-b border-gray-800 pb-1">
+                                <span class="text-gray-500">Y (Tension j)</span>
+                                <span id="qY" class="text-neon-green">0.00</span>
+                            </div>
+                            <div class="flex justify-between">
+                                <span class="text-gray-500">Z (Tension k)</span>
+                                <span id="qZ" class="text-neon-blue">0.00</span>
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+        </div>
+
+    </main>
+
+    <script>
+        // --- TAB SWITCHING ---
+        function switchTab(tabId) {
+            document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
+            document.getElementById(tabId).classList.add('active');
+            
+            document.querySelectorAll('.nav-btn').forEach(el => el.classList.remove('active'));
+            document.getElementById('btn-' + tabId).classList.add('active');
+            
+            if(tabId === 'tab2') setTimeout(resizeSubstrateCanvas, 50);
+            if(tabId === 'tab1') setTimeout(resizeCanvas1, 50);
+        }
+
+        // --- SHARED PHYSICS STATE ---
+        let bioTime = 0;
+        let subTime = 0;
+        let isBioRunning = false; // Start Paused for Bio-Chain
+        let isSubRunning = false; // Start Paused for Substrate
+
+        // --- TAB 1: MANIFOLD VISUALIZER (Interactive) ---
+        const canvas1 = document.getElementById('manifoldCanvas');
+        const ctx1 = canvas1.getContext('2d');
+        const container1 = document.getElementById('manifoldContainer');
+        const substrateToggle = document.getElementById('substrateToggle');
+        
+        // View State for Manifold
+        let camRotX = 0;
+        let camRotY = 0;
+        let camZoom = 1.0;
+        let isDragging = false;
+        let lastMouseX = 0;
+        let lastMouseY = 0;
+
+        function resizeCanvas1() {
+            if(!canvas1.parentElement) return;
+            canvas1.width = canvas1.parentElement.clientWidth;
+            canvas1.height = canvas1.parentElement.clientHeight;
+        }
+        window.addEventListener('resize', resizeCanvas1);
+        resizeCanvas1();
+
+        // Mouse Events for Manifold
+        container1.addEventListener('mousedown', (e) => {
+            isDragging = true;
+            lastMouseX = e.clientX;
+            lastMouseY = e.clientY;
+        });
+        window.addEventListener('mouseup', () => isDragging = false);
+        window.addEventListener('mousemove', (e) => {
+            if(!isDragging) return;
+            const deltaX = e.clientX - lastMouseX;
+            const deltaY = e.clientY - lastMouseY;
+            camRotY += deltaX * 0.01;
+            camRotX += deltaY * 0.01;
+            lastMouseX = e.clientX;
+            lastMouseY = e.clientY;
+        });
+        container1.addEventListener('wheel', (e) => {
+            e.preventDefault();
+            camZoom += e.deltaY * -0.001;
+            camZoom = Math.min(Math.max(.5, camZoom), 3);
+        });
+
+        // Bio-Chain Play Toggle
+        function toggleBioPlay() {
+            isBioRunning = !isBioRunning;
+            const btn = document.getElementById('btnBioPlay');
+            if(isBioRunning) {
+                btn.innerHTML = '<i class="fas fa-pause text-xs"></i>';
+                btn.classList.add('text-neon-green', 'border-neon-green/50');
+                btn.classList.remove('text-neon-blue', 'border-neon-blue/30');
+            } else {
+                btn.innerHTML = '<i class="fas fa-play text-xs"></i>';
+                btn.classList.remove('text-neon-green', 'border-neon-green/50');
+                btn.classList.add('text-neon-blue', 'border-neon-blue/30');
+            }
+        }
+
+        function getTorusKnotPoint(t, offset) {
+            const p = 4, q = 9;
+            // Use bioTime for pulsing, NOT rotation
+            const r_tube = 0.4 + (0.1 * Math.sin(bioTime * 2));
+            const R_torus = 1.0;
+            const angle = t + offset;
+            
+            // Raw 3D Coords (Static geometry unless p/q change)
+            const r = R_torus + r_tube * Math.cos(q * angle);
+            let x = r * Math.cos(p * angle);
+            let y = r * Math.sin(p * angle);
+            let z = r_tube * Math.sin(q * angle);
+
+            // Apply Manual Rotation (Camera)
+            // Rotate Y
+            let x_ry = x * Math.cos(camRotY) - z * Math.sin(camRotY);
+            let z_ry = x * Math.sin(camRotY) + z * Math.cos(camRotY);
+            x = x_ry; z = z_ry;
+
+            // Rotate X
+            let y_rx = y * Math.cos(camRotX) - z * Math.sin(camRotX);
+            let z_rx = y * Math.sin(camRotX) + z * Math.cos(camRotX);
+            y = y_rx; z = z_rx;
+
+            // Projection
+            const scale = (Math.min(canvas1.width, canvas1.height) / 4) * camZoom;
+            
+            return { 
+                x: canvas1.width/2 + x * scale, 
+                y: canvas1.height/2 + y * scale 
+            };
+        }
+
+        function drawHexLatticeOverlay(stress) {
+            ctx1.strokeStyle = `rgba(255, 170, 0, 0.05)`; // 5% Opacity Amber
+            ctx1.lineWidth = 1;
+            const size = 40 * camZoom;
+            const cols = 5;
+            const rows = 5;
+            
+            // Distort based on stress input (from Tab 2 controls, or default)
+            const distort = Math.sin(bioTime) * stress * 0.5;
+
+            // Center grid
+            const offsetX = canvas1.width/2 - (cols * size * 1.5)/2;
+            const offsetY = canvas1.height/2 - (rows * size * Math.sqrt(3))/2;
+
+            for(let r=0; r<rows; r++) {
+                for(let c=0; c<cols; c++) {
+                    const x = (c * size * 1.5) + offsetX + distort;
+                    const y = (r * size * Math.sqrt(3)) + (c%2 * size * Math.sqrt(3)/2) + offsetY;
+                    
+                    ctx1.beginPath();
+                    for (let i = 0; i < 6; i++) {
+                        const angle = 2 * Math.PI / 6 * i + camRotY; // Rotate with camera Y
+                        const px = x + size * Math.cos(angle);
+                        const py = y + size * Math.sin(angle);
+                        if (i === 0) ctx1.moveTo(px, py); else ctx1.lineTo(px, py);
+                    }
+                    ctx1.closePath();
+                    ctx1.stroke();
+                }
+            }
+        }
+
+        function drawManifold() {
+            if (!document.getElementById('tab1').classList.contains('active')) return; 
+            
+            ctx1.fillStyle = 'rgba(5, 5, 5, 0.2)';
+            ctx1.fillRect(0, 0, canvas1.width, canvas1.height);
+            
+            // Draw Substrate Lattice if checked
+            if(substrateToggle.checked) {
+                // Link stress from Tab 2 slider for visualization
+                const stressVal = parseFloat(document.getElementById('sliderStress').value);
+                drawHexLatticeOverlay(stressVal);
+            }
+
+            const planckPhase = (Math.sin(bioTime * 1.5) + 1) / 2;
+            document.getElementById('compressionBar').style.width = `${planckPhase * 100}%`;
+
+            for (let s = 0; s < 12; s++) {
+                const streamOffset = (s / 12) * (Math.PI * 2) / 9;
+                ctx1.beginPath();
+                const isPrimary = s % 2 === 0;
+                const baseColor = isPrimary ? {r:0, g:243, b:255} : {r:188, g:19, b:254};
+                
+                for (let t = 0; t < Math.PI * 2; t += 0.05) {
+                    const p1 = getTorusKnotPoint(t, streamOffset);
+                    const p2 = getTorusKnotPoint(t + 0.05, streamOffset);
+                    if (t === 0) ctx1.moveTo(p1.x, p1.y); else ctx1.lineTo(p2.x, p2.y);
+                }
+                const opacity = 0.3 + (planckPhase * 0.4);
+                ctx1.strokeStyle = `rgba(${baseColor.r}, ${baseColor.g}, ${baseColor.b}, ${opacity})`;
+                ctx1.lineWidth = isPrimary ? 1.5 : 1;
+                ctx1.stroke();
+            }
+        }
+
+        // --- RESTORED EINSTEIN TILE LOGIC ---
+        function initGrid() {
+            const grid = document.getElementById('bitGrid');
+            if(!grid) return;
+            grid.innerHTML = '';
+            for (let row = 0; row < 8; row++) {
+                for (let col = 0; col < 8; col++) {
+                    const div = document.createElement('div');
+                    div.className = 'bit-cell';
+                    div.id = `bit-${row}-${col}`;
+                    if (row === 0) div.classList.add('row-halo-n');
+                    else if (row === 7) div.classList.add('row-halo-s');
+                    else div.classList.add('row-core');
+                    grid.appendChild(div);
+                }
+            }
+        }
+
+        function updateGridVisuals(bytes) {
+            for (let row = 0; row < 8; row++) {
+                const byte = bytes[row];
+                for (let col = 0; col < 8; col++) {
+                    const bit = (byte >> col) & 1;
+                    const cell = document.getElementById(`bit-${row}-${col}`);
+                    if (!cell) continue;
+                    
+                    let activeColor = '';
+                    if (row === 0) activeColor = '#bc13fe';
+                    else if (row === 7) activeColor = '#0aff0a';
+                    else activeColor = '#00f3ff';
+
+                    if (bit) {
+                        cell.style.backgroundColor = activeColor;
+                        cell.style.boxShadow = `0 0 5px ${activeColor}`;
+                    } else {
+                        cell.style.backgroundColor = 'transparent';
+                        cell.style.boxShadow = 'none';
+                    }
+                }
+            }
+        }
+
+        function decodePacket(form, spin, energyByte, scaleVal, freq, amp) {
+            const formMap = {
+                0: { dna: "TA (Hinge)", hgt: "Unstable", desc: "High Flex / Unstable" },
+                1: { dna: "AT (Flex)", hgt: "Adaptive", desc: "Flexible" },
+                5: { dna: "AC (Weak)", hgt: "Transient", desc: "Amino / Weak" },
+                8: { dna: "CG (Anchor)", hgt: "High Fidelity", desc: "High Stability (CpG)" },
+                10: { dna: "GT (Wobble)", hgt: "Mutagenic", desc: "Keto / Weak" },
+                15: { dna: "GG (Lock)", hgt: "Resistant", desc: "Max Stacking" }
+            };
+            const spinMap = {
+                0: "Hydrophobic (Collapse)",
+                1: "Pi-Stacking (Aromatic)",
+                2: "Disulfide Bridge (Sulfur)",
+                3: "Polar Bond (Alcoholic)",
+                4: "Repels Acidic (Acidic)",
+                5: "Attracts Acidic (Basic)",
+                6: "H-Bond Network (Amide)",
+                7: "Fixed Turn (Cyclic)"
+            };
+
+            const fData = formMap[form] || { dna: "Unknown Motif", hgt: "Neutral", desc: "N/A" };
+            const sData = spinMap[spin] || "Inert";
+            const energyLvl = (energyByte / 255).toFixed(2);
+
+            document.getElementById('decoderCode').innerText = `ISO-GEN-${form}-${spin}`;
+            document.getElementById('decodeDNA').innerText = fData.dna;
+            document.getElementById('decodeProtein').innerText = sData;
+            document.getElementById('decodeScale').innerText = scaleVal;
+            document.getElementById('decodeOsc').innerText = `F:${freq} | A:${amp}`;
+        }
+
+        function generatePacket() {
+            if(!document.getElementById('formSelect')) return;
+
+            const formVal = parseInt(document.getElementById('formSelect').value);
+            const spinVal = parseInt(document.getElementById('spinSelect').value);
+            const scaleVal = parseInt(document.getElementById('scaleSlider').value);
+            const freqVal = parseInt(document.getElementById('freqInput').value);
+            const ampVal = parseInt(document.getElementById('ampInput').value);
+            
+            const parity = (formVal % 2 !== 0) ? 1 : 0; 
+
+            let byte0 = 0;
+            byte0 |= (formVal & 0x0F);
+            byte0 |= ((parity & 0x01) << 4);
+            byte0 |= ((spinVal & 0x07) << 5);
+
+            const byte1 = (scaleVal >> 8) & 0xFF;
+            const byte6 = scaleVal & 0xFF;
+
+            const mapFloat = (val) => Math.floor(((parseFloat(val) + 1) / 2) * 255);
+            const bW = mapFloat(document.getElementById('sliderW').value);
+            const bX = mapFloat(document.getElementById('sliderX').value);
+            const bY = mapFloat(document.getElementById('sliderY').value);
+            const bZ = mapFloat(document.getElementById('sliderZ').value);
+
+            let byte7 = 0;
+            byte7 |= (freqVal & 0x1F);
+            byte7 |= ((ampVal & 0x07) << 5);
+
+            const byteArray = [byte0, byte1, bW, bX, bY, bZ, byte6, byte7];
+
+            updateGridVisuals(byteArray);
+
+            const hexStr = byteArray.map(b => b.toString(16).padStart(2, '0').toUpperCase()).join(' ');
+            document.getElementById('hexOutput').innerText = hexStr;
+
+            decodePacket(formVal, spinVal, bW, scaleVal, freqVal, ampVal);
+        }
+
+        function triggerSync() {
+            const status = document.getElementById('syncStatus');
+            status.innerText = "INITIATING TRUTH CHAIN...";
+            status.className = "text-[9px] text-neon-blue text-right h-3";
+            
+            setTimeout(() => {
+                status.innerText = "CONTEXT PAIRING...";
+                status.className = "text-[9px] text-purple-400 text-right h-3 animate-pulse";
+            }, 800);
+
+            setTimeout(() => {
+                status.innerText = "SYNCHRONIZED (FALCON HASH VALID)";
+                status.className = "text-[9px] text-neon-green text-right h-3";
+            }, 2000);
+        }
+
+        // Add Listeners
+        const sliders = ['W', 'X', 'Y', 'Z'];
+        sliders.forEach(id => {
+            const el = document.getElementById('slider'+id);
+            if(el) el.addEventListener('input', generatePacket);
+        });
+        document.getElementById('formSelect').addEventListener('change', generatePacket);
+        document.getElementById('spinSelect').addEventListener('change', generatePacket);
+        document.getElementById('scaleSlider').addEventListener('input', generatePacket);
+        document.getElementById('freqInput').addEventListener('input', generatePacket);
+        document.getElementById('ampInput').addEventListener('input', generatePacket);
+
+
+        // --- TAB 2: SUBSTRATE FORGE ---
+        const canvas2 = document.getElementById('substrateCanvas');
+        const ctx2 = canvas2.getContext('2d');
+        
+        let substrateParams = {
+            verdet: 2.5,
+            length: 1.0,
+            stress: 0.0
+        };
+
+        const sliderPulse = document.getElementById('sliderPulse');
+        const valRatio = document.getElementById('valRatio');
+
+        function resizeSubstrateCanvas() {
+            if(!canvas2.parentElement) return;
+            canvas2.width = canvas2.parentElement.clientWidth;
+            canvas2.height = canvas2.parentElement.clientHeight;
+        }
+        window.addEventListener('resize', resizeSubstrateCanvas);
+        resizeSubstrateCanvas(); // Init
+
+        // CYCLE CONTROL LOGIC
+        function toggleCycle() {
+            isSubRunning = !isSubRunning;
+            const btn = document.getElementById('btnPlayPause');
+            const status = document.getElementById('cycleStatus');
+            
+            if(isSubRunning) {
+                btn.innerHTML = '<i class="fas fa-pause mr-2"></i> PAUSE';
+                status.innerText = "RUNNING";
+                status.classList.remove('text-red-500');
+                status.classList.add('text-neon-green');
+            } else {
+                btn.innerHTML = '<i class="fas fa-play mr-2"></i> PLAY';
+                status.innerText = "PAUSED";
+                status.classList.remove('text-neon-green');
+                status.classList.add('text-red-500');
+            }
+        }
+
+        function resetCycle() {
+            subTime = 0;
+            sliderPulse.value = 0;
+            valRatio.innerText = "0";
+            if(!isSubRunning) toggleCycle();
+        }
+
+        // Pulse Slider Logic
+        sliderPulse.addEventListener('input', (e) => {
+            subTime = parseInt(e.target.value);
+            valRatio.innerText = subTime;
+            // Pause if user drags slider manually
+            if(isSubRunning) toggleCycle();
+        });
+
+        // UI Listeners Tab 2
+        document.getElementById('sliderV').addEventListener('input', (e) => { substrateParams.verdet = parseFloat(e.target.value); updateReadouts(); });
+        document.getElementById('sliderL').addEventListener('input', (e) => { substrateParams.length = parseFloat(e.target.value); updateReadouts(); });
+        document.getElementById('sliderStress').addEventListener('input', (e) => { substrateParams.stress = parseFloat(e.target.value); updateReadouts(); });
+
+        function updateReadouts() {
+            document.getElementById('valV').innerText = substrateParams.verdet.toFixed(1);
+            document.getElementById('valL').innerText = substrateParams.length.toFixed(1);
+            document.getElementById('valStress').innerText = substrateParams.stress.toFixed(1);
+        }
+
+        function calculateTensionQuaternion() {
+            const phi = substrateParams.stress * substrateParams.verdet * substrateParams.length * 5; 
+            const B_geom = phi / (substrateParams.verdet * substrateParams.length || 0.001); 
+            
+            // Map phase to cycle
+            const phase = (subTime / 720) * Math.PI * 4; 
+            const qX = B_geom * Math.cos(phase);
+            const qY = B_geom * Math.sin(phase);
+            const qZ = B_geom * Math.sin(phase * 2);
+            
+            return { phi, B_geom, w: Math.abs(B_geom), x: qX, y: qY, z: qZ };
+        }
+
+        function drawHexLattice(yOffset, scale, color, stress) {
+            ctx2.strokeStyle = color;
+            ctx2.lineWidth = 1;
+            const size = 30 * scale;
+            const cols = 8;
+            const rows = 5;
+            
+            // Distort using Substrate Pulse time
+            const distortX = Math.sin((subTime/720) * Math.PI * 4) * stress * 2;
+
+            for(let r=0; r<rows; r++) {
+                for(let c=0; c<cols; c++) {
+                    const x = (c * size * 1.5) + (canvas2.width/2 - (cols*size)/1.5) + distortX;
+                    const y = (r * size * Math.sqrt(3)) + (c%2 * size * Math.sqrt(3)/2) + yOffset;
+                    
+                    ctx2.beginPath();
+                    for (let i = 0; i < 6; i++) {
+                        const angle = 2 * Math.PI / 6 * i;
+                        const px = x + size * Math.cos(angle);
+                        const py = y + size * Math.sin(angle);
+                        if (i === 0) ctx2.moveTo(px, py); else ctx2.lineTo(px, py);
+                    }
+                    ctx2.closePath();
+                    ctx2.stroke();
+
+                    ctx2.beginPath();
+                    ctx2.moveTo(x + size * Math.cos(0), y + size * Math.sin(0));
+                    ctx2.lineTo(x + size * Math.cos(2*Math.PI/3), y + size * Math.sin(2*Math.PI/3));
+                    ctx2.lineTo(x + size * Math.cos(4*Math.PI/3), y + size * Math.sin(4*Math.PI/3));
+                    ctx2.closePath();
+                    ctx2.stroke();
+                }
+            }
+        }
+
+        function drawSubstrate() {
+            if (!document.getElementById('tab2').classList.contains('active')) return;
+
+            ctx2.fillStyle = '#050505';
+            ctx2.fillRect(0, 0, canvas2.width, canvas2.height);
+
+            const centerX = canvas2.width / 2;
+            const centerY = canvas2.height / 2;
+            const data = calculateTensionQuaternion();
+
+            document.getElementById('phiValue').innerText = data.phi.toFixed(2) + "°";
+            document.getElementById('tensionOutput').innerText = Math.abs(data.B_geom).toFixed(2) + " T";
+            document.getElementById('qW').innerText = data.w.toFixed(2);
+            document.getElementById('qX').innerText = data.x.toFixed(2);
+            document.getElementById('qY').innerText = data.y.toFixed(2);
+            document.getElementById('qZ').innerText = data.z.toFixed(2);
+
+            // Determine Cycle State (subTime 0-720)
+            const stageLen = 720 / 5; 
+            
+            let stateStr = "";
+            let nodes = 12;
+            let dotId = "";
+
+            if (subTime < stageLen) { stateStr = "12 EDGES (LATTICE)"; nodes = 12; dotId="dot-12"; }
+            else if (subTime < stageLen*2) { stateStr = "6 FACES (COLLAPSE)"; nodes = 6; dotId="dot-6"; }
+            else if (subTime < stageLen*3) { stateStr = "7 PIVOTS (STRASSEN)"; nodes = 7; dotId="dot-7"; }
+            else if (subTime < stageLen*4) { stateStr = "3 AXES (SYNTHESIS)"; nodes = 3; dotId="dot-3"; }
+            else { stateStr = "1 SINGULARITY"; nodes = 1; dotId="dot-1"; }
+
+            document.getElementById('cycleState').innerText = stateStr;
+            document.querySelectorAll('.cycle-dot').forEach(d => d.classList.replace('bg-neon-blue', 'bg-gray-700'));
+            const dot = document.getElementById(dotId);
+            if(dot) { dot.classList.replace('bg-gray-700', 'bg-neon-blue'); }
+
+
+            // Render Visuals (Layers)
+            drawHexLattice(centerY + 80, 0.8, 'rgba(0, 243, 255, 0.2)', 0);
+
+            const filmH = 60;
+            const filmW = 300;
+            const filmY = centerY - filmH/2;
+            
+            const tensionGlow = Math.min(Math.abs(data.B_geom)*20, 50);
+            ctx2.shadowBlur = tensionGlow;
+            ctx2.shadowColor = '#ff3333';
+            
+            ctx2.fillStyle = 'rgba(60, 10, 10, 0.8)';
+            ctx2.fillRect(centerX - filmW/2, filmY, filmW, filmH);
+            ctx2.strokeStyle = '#ff3333';
+            ctx2.lineWidth = 2;
+            ctx2.strokeRect(centerX - filmW/2, filmY, filmW, filmH);
+            ctx2.shadowBlur = 0;
+
+            ctx2.strokeStyle = '#ffaa00'; 
+            ctx2.lineWidth = 2;
+            ctx2.beginPath();
+            for(let i=-5; i<5; i++) {
+                const x = centerX + i * 30;
+                ctx2.moveTo(x, filmY);
+                ctx2.lineTo(x + 10, filmY + filmH);
+            }
+            ctx2.stroke();
+
+            drawHexLattice(centerY - 140, 1.0, 'rgba(0, 243, 255, 0.4)', substrateParams.stress);
+
+            ctx2.strokeStyle = '#ffffff';
+            ctx2.lineWidth = 2;
+            ctx2.setLineDash([5, 5]);
+            ctx2.beginPath();
+            ctx2.moveTo(centerX, 50);
+            ctx2.lineTo(centerX, canvas2.height - 50);
+            ctx2.stroke();
+            ctx2.setLineDash([]);
+
+            const vecX = centerX;
+            const vecY = filmY + filmH/2;
+            const vecLen = 40;
+            
+            ctx2.beginPath();
+            ctx2.arc(vecX, vecY, 10, 0, Math.PI*2);
+            ctx2.fillStyle = 'white';
+            ctx2.fill();
+
+            const rad = data.phi * (Math.PI / 180);
+            ctx2.strokeStyle = '#0aff0a'; // Green
+            ctx2.lineWidth = 3;
+            ctx2.beginPath();
+            ctx2.moveTo(vecX, vecY);
+            ctx2.lineTo(vecX + vecLen * Math.sin(rad), vecY - vecLen * Math.cos(rad)); 
+            ctx2.stroke();
+
+            // Compression Cube Visualizer
+            const cubeX = canvas2.width - 80;
+            const cubeY = centerY;
+            
+            ctx2.strokeStyle = '#bc13fe';
+            ctx2.lineWidth = 2;
+            
+            // Lerp animation for smoothness
+            const phaseT = (subTime * 0.1); 
+
+            if (nodes === 1) {
+                ctx2.beginPath();
+                ctx2.arc(cubeX, cubeY, 5, 0, Math.PI*2);
+                ctx2.fillStyle = '#fff';
+                ctx2.fill();
+                ctx2.stroke();
+            } else if (nodes === 12) {
+                ctx2.strokeRect(cubeX - 20, cubeY - 20, 40, 40);
+                ctx2.strokeRect(cubeX - 10, cubeY - 30, 40, 40);
+                ctx2.beginPath();
+                ctx2.moveTo(cubeX-20, cubeY-20); ctx2.lineTo(cubeX-10, cubeY-30);
+                ctx2.moveTo(cubeX+20, cubeY-20); ctx2.lineTo(cubeX+30, cubeY-30);
+                ctx2.moveTo(cubeX-20, cubeY+20); ctx2.lineTo(cubeX-10, cubeY+10);
+                ctx2.moveTo(cubeX+20, cubeY+20); ctx2.lineTo(cubeX+30, cubeY+10);
+                ctx2.stroke();
+            } else {
+                ctx2.beginPath();
+                for(let i=0; i<nodes; i++) {
+                    const a = (Math.PI*2 * i) / nodes + phaseT;
+                    const r = 30;
+                    const px = cubeX + r * Math.cos(a);
+                    const py = cubeY + r * Math.sin(a);
+                    if(i===0) ctx2.moveTo(px, py); else ctx2.lineTo(px, py);
+                }
+                ctx2.closePath();
+                ctx2.stroke();
+            }
+        }
+
+        // --- MAIN LOOP ---
+        function loop() {
+            drawManifold();
+            drawSubstrate();
+            
+            // Bio-Chain Logic (Time increments for breath effect)
+            if(isBioRunning) {
+                bioTime += 0.02;
+            }
+
+            // Substrate Forge Logic (Time increments for cycle)
+            if(isSubRunning) {
+                subTime += 1;
+                if(subTime > 720) subTime = 0; // Loop cycle
+                sliderPulse.value = subTime;
+                valRatio.innerText = subTime;
+            }
+
+            requestAnimationFrame(loop);
+        }
+        loop();
+
+        // Init
+        initGrid();
+        generatePacket();
+
+    </script>
+</body>
+</html>
